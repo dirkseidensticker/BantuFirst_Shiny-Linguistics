@@ -54,10 +54,6 @@ klc$guthrie <- paste(substr(klc$guthrieCode, 1, 1),
                                                    1, 2))/10), 
                       sep = '')
 
-# remove uppercase X, Y, Z
-# klc$guthrieCode
-
-
 # remove prefixes
 klc$variety <- gsub("Ki|Di|Yi|I|Ci", "", klc$variety)
 klc$variety <- paste(toupper(substr(klc$variety, 1, 1)), substr(klc$variety, 2, nchar(klc$variety)), sep="")
@@ -93,42 +89,6 @@ sara$guthrieDialect <- substring(gsub("[^[:upper:]]",
 # Concatenate the two dataframes 
 # ------------------------------
 d <- rbind.fill(klc, sara)
-
-# # Farbskala
-# # ---------
-# 
-# # selection of variable to use for color:
-# # WIP!!!
-# sel <- c("branch", 
-#          "guthrie")
-# 
-# for(i in 1:length(sel)){
-#   c.v <- unique(eval(parse(text = paste0("d$", sel[i]))))
-#   
-#   if(sel[i] == "branch"){
-#     # use fixed color scheme for the branches/clusters
-#     c.klc <- read.csv("colKLC.csv", stringsAsFactors = FALSE)
-#     c.v <- as.data.frame(c.v)
-#     names(c.v) <- "c.v"
-#     c.pal <- merge(c.v, c.klc, by = "c.v", all = TRUE)
-#   } else {
-#     #pal <- topo.colors(n = length(c.v))
-#     # leaflet seems to have issues with the output we need to remove the last two letters of the color code
-#     #pal <- substr(pal,1,nchar(pal)-2)
-#     pal <- matlab.like2(length(c.v))
-#     c.pal <- melt(data.frame(c.v, pal, stringsAsFactors = FALSE))
-#   }
-# 
-#   # NA values should be displayed in gray
-#   c.pal$pal[is.na(c.pal$c.v)] <- '#808080'
-#   
-#   d <- merge(x = d, 
-#              y = c.pal, 
-#              by = sel[i], 
-#              by.y = 'c.v')
-#   
-#   names(d)[names(d) == "pal"] <- paste("pal", sel[i], sep = '.')
-# }
 
 ###########
 # Popup   # 
@@ -192,10 +152,6 @@ server <- function(input, output) {
                 opacity = 1)
   })
 
-  # output$value <- renderPrint({
-  #   input$color
-  # })
-  
 }
 
 shinyApp(ui, server)
