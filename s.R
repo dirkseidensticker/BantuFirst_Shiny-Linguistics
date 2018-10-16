@@ -1,3 +1,4 @@
+library(colorRamps)
 library(ggplot2)
 library(shiny)
 library(leaflet)
@@ -5,6 +6,7 @@ library(readxl)
 require(reshape2)
 library(plyr)
 library(tidyr)
+library(viridis)
 
 ###########
 # UI      # 
@@ -17,8 +19,10 @@ ui <- bootstrapPage(
   absolutePanel(top = 10, right = 10,
                 selectInput(inputId = "color", 
                             label = "Chose a Value:",
-                            choices = c("Branch" = 'pal.branch', 
-                                        "Guthrie Index" = 'pal.guthrie'))
+                            choices = c("Branch" = 'branch', 
+                                        "Guthrie Index" = 'guthrie'))
+                            #choices = c("Branch" = 'pal.branch', 
+                            #            "Guthrie Index" = 'pal.guthrie'))
   )
 )
 
@@ -90,40 +94,41 @@ sara$guthrieDialect <- substring(gsub("[^[:upper:]]",
 # ------------------------------
 d <- rbind.fill(klc, sara)
 
-# Farbskala
-# ---------
-
-# selection of variable to use for color:
-# WIP!!!
-sel <- c("branch", 
-         "guthrie")
-
-for(i in 1:length(sel)){
-  c.v <- unique(eval(parse(text = paste0("d$", sel[i]))))
-  
-  if(sel[i] == "branch"){
-    # use fixed color scheme for the branches/clusters
-    c.klc <- read.csv("colKLC.csv", stringsAsFactors = FALSE)
-    c.v <- as.data.frame(c.v)
-    names(c.v) <- "c.v"
-    c.pal <- merge(c.v, c.klc, by = "c.v", all = TRUE)
-  } else {
-    pal <- rainbow(n = length(c.v))
-    # leaflet seems to have issues with the output we need to remove the last two letters of the color code
-    pal <- substr(pal,1,nchar(pal)-2)
-    c.pal <- melt(data.frame(c.v, pal, stringsAsFactors = FALSE))
-  }
-
-  # NA values should be displayed in gray
-  c.pal$pal[is.na(c.pal$c.v)] <- '#808080'
-  
-  d <- merge(x = d, 
-             y = c.pal, 
-             by = sel[i], 
-             by.y = 'c.v')
-  
-  names(d)[names(d) == "pal"] <- paste("pal", sel[i], sep = '.')
-}
+# # Farbskala
+# # ---------
+# 
+# # selection of variable to use for color:
+# # WIP!!!
+# sel <- c("branch", 
+#          "guthrie")
+# 
+# for(i in 1:length(sel)){
+#   c.v <- unique(eval(parse(text = paste0("d$", sel[i]))))
+#   
+#   if(sel[i] == "branch"){
+#     # use fixed color scheme for the branches/clusters
+#     c.klc <- read.csv("colKLC.csv", stringsAsFactors = FALSE)
+#     c.v <- as.data.frame(c.v)
+#     names(c.v) <- "c.v"
+#     c.pal <- merge(c.v, c.klc, by = "c.v", all = TRUE)
+#   } else {
+#     #pal <- topo.colors(n = length(c.v))
+#     # leaflet seems to have issues with the output we need to remove the last two letters of the color code
+#     #pal <- substr(pal,1,nchar(pal)-2)
+#     pal <- matlab.like2(length(c.v))
+#     c.pal <- melt(data.frame(c.v, pal, stringsAsFactors = FALSE))
+#   }
+# 
+#   # NA values should be displayed in gray
+#   c.pal$pal[is.na(c.pal$c.v)] <- '#808080'
+#   
+#   d <- merge(x = d, 
+#              y = c.pal, 
+#              by = sel[i], 
+#              by.y = 'c.v')
+#   
+#   names(d)[names(d) == "pal"] <- paste("pal", sel[i], sep = '.')
+# }
 
 ###########
 # Popup   # 
@@ -165,36 +170,31 @@ server <- function(input, output) {
   })
 
   observe({
+    
+    x <- eval(parse(text = paste0("d$", input$color)))
+    pal <- colorFactor(rainbow(length(unique(x))), 
+                       domain = x)
+    
     leafletProxy("map", data = d) %>% 
       clearMarkers() %>% 
+      clearControls() %>% 
       addCircleMarkers(data = d,
                        ~as.numeric(d$long),
                        ~as.numeric(d$lat),
-                       #label = ~as.character(variety),
                        label = paste(d$variety, " [", d$guthrieCode, "]", sep = ''),
-                       #labelOptions = labelOptions(noHide = T),
-                       color = ~selectedData(), 
+                       color = ~pal(x),
                        popup = popup,
-                       fillOpacity = .5)# %>%
-      #addLegend(position = "bottomright",
-      #          pal = c.pal$pal, 
-      #          values = c.pal$c.v, 
-      #          opacity = 1)
+                       fillOpacity = .5) %>%
+      addLegend(position = "bottomleft",
+                title = "", 
+                pal = pal,
+                values = ~x,
+                opacity = 1)
   })
 
-  #observe({
-  #  proxy <- leafletProxy("map", data = d)
-  #  # Remove any existing legend
-  #  proxy %>% clearControls()
-  #  proxy %>% addLegend(position = "bottomright",
-  #                        pal = c.pal$pal, 
-  #                        values = c.pal$c.v, 
-  #                        opacity = 1)
-  #})
-  #
-  #output$value <- renderPrint({
-  #  d[[input$color]]
-  #})
+  # output$value <- renderPrint({
+  #   input$color
+  # })
   
 }
 
