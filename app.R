@@ -6,7 +6,6 @@ library(readxl)
 require(reshape2)
 library(plyr)
 library(tidyr)
-library(viridis)
 
 ###########
 # UI      # 
@@ -14,15 +13,14 @@ library(viridis)
 
 ui <- bootstrapPage(
   tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+  # testtags$style(type="text/css", "legend.info {font-size: 5px}"),
   leafletOutput("map", width = "100%", height = "100%"),
   textOutput("value"), 
   absolutePanel(top = 10, right = 10,
                 selectInput(inputId = "color", 
                             label = "Chose a Value:",
-                            choices = c("Branch" = 'branch', 
-                                        "Guthrie Index" = 'guthrie'))
-                            #choices = c("Branch" = 'pal.branch', 
-                            #            "Guthrie Index" = 'pal.guthrie'))
+                            choices = c("Phylogenetic Classification" = 'branch', 
+                                        "Referential Classification" = 'guthrie'))
   )
 )
 
@@ -90,6 +88,11 @@ sara$guthrieDialect <- substring(gsub("[^[:upper:]]",
 # ------------------------------
 d <- rbind.fill(klc, sara)
 
+# Labels for Legend for Phylogenetic Classification / Branch
+# ----------------------------------------------------------
+d$branch.legend <- paste0("KLC/", unique(d$branch))
+d$branch.legend[d$branch.legend == "KLC/NA"] <- "WCB outside KLC"
+
 ###########
 # Popup   # 
 ###########
@@ -146,12 +149,12 @@ server <- function(input, output) {
                        popup = popup,
                        fillOpacity = .5) %>%
       addLegend(position = "bottomleft",
-                title = "", 
-                pal = pal,
-                values = ~x,
+                title = "",
+                # pal = pal,
+                pal = if(input$color ==  "branch"){colorFactor(append(rainbow(length(unique(d$branch))), "#808080"), domain = NULL)}else{pal},
+                values = if(input$color ==  "branch"){~d$branch.legend}else{~x},
                 opacity = 1)
   })
-
 }
 
 shinyApp(ui, server)
