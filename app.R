@@ -14,13 +14,14 @@ library(tidyr)
 ui <- bootstrapPage(
   tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
   # testtags$style(type="text/css", "legend.info {font-size: 5px}"),
-  leafletOutput("map", width = "100%", height = "100%"),
+  leafletOutput("map", width = "100%", height = "95%"),
   textOutput("value"), 
   absolutePanel(top = 10, right = 10,
                 selectInput(inputId = "color", 
                             label = "Chose a Value:",
                             choices = c("Phylogenetic Classification" = 'branch', 
-                                        "Referential Classification" = 'guthrie'))
+                                        "Referential Classification" = 'guthrie', 
+                                        "Referential Classification (Labels)" = 'guthrie.label'))
   )
 )
 
@@ -138,23 +139,54 @@ server <- function(input, output) {
     pal <- colorFactor(rainbow(length(unique(x))), 
                        domain = x)
     
-    leafletProxy("map", data = d) %>% 
-      clearMarkers() %>% 
-      clearControls() %>% 
-      addCircleMarkers(data = d,
-                       ~as.numeric(d$long),
-                       ~as.numeric(d$lat),
-                       label = paste(d$variety, " [", d$guthrieCode, "]", sep = ''),
-                       color = ~pal(x),
-                       popup = popup,
-                       fillOpacity = .5) %>%
-      addLegend(position = "bottomleft",
-                title = "",
-                # pal = pal,
-                pal = if(input$color ==  "branch"){colorFactor(append(rainbow(length(unique(d$branch))), "#808080"), domain = NULL)}else{pal},
-                values = if(input$color ==  "branch"){~d$branch.legend}else{~x},
-                opacity = 1)
+    
+    if(input$color == "guthrie.label"){
+      leafletProxy("map", data = d) %>% 
+        clearMarkers() %>% 
+        clearControls() %>% 
+        addLabelOnlyMarkers(data = d,
+                          ~as.numeric(d$long),
+                          ~as.numeric(d$lat),
+                          label =  ~as.character(d$guthrieCode),
+                          labelOptions = labelOptions(noHide = T,
+                                                      offset=c(-12,0),
+                                                      textOnly = T,
+                                                      textsize = '15px',
+                                                      style = list('color' =  'black'))) %>% 
+        addLegend(position = "bottomleft",
+                  title = "",
+                  pal = if(input$color ==  "branch"){colorFactor(append(rainbow(length(unique(d$branch))), "#808080"), domain = NULL)}else{pal},
+                  values = if(input$color ==  "branch"){~d$branch.legend}else{~x},
+                  opacity = 1)
+    } else {
+      leafletProxy("map", data = d) %>% 
+        clearMarkers() %>% 
+        clearControls() %>% 
+        addCircleMarkers(data = d,
+                         ~as.numeric(d$long),
+                         ~as.numeric(d$lat),
+                         label = paste(d$variety, " [", d$guthrieCode, "]", sep = ''),
+                         color = ~pal(x),
+                         popup = popup,
+                         fillOpacity = .5) %>% 
+        addLegend(position = "bottomleft",
+                  title = "",
+                  pal = if(input$color ==  "branch"){colorFactor(append(rainbow(length(unique(d$branch))), "#808080"), domain = NULL)}else{pal},
+                  values = if(input$color ==  "branch"){~d$branch.legend}else{~x},
+                  opacity = 1)
+    }
+
   })
+  
+  output$value <- renderText({
+    if(input$color == "branch"){
+      print("based on de Schryver et al. 2015, Grollemund et al. 2015, Bostoen & de Schryver 2018")
+    }
+    else{
+      print(" based on Guthrie 1971, Maho 2009 and further updates by Sara Pacchiarotti")
+    }
+  })
+  
 }
 
 shinyApp(ui, server)
