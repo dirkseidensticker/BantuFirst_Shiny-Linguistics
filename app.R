@@ -94,6 +94,24 @@ d <- rbind.fill(klc, sara)
 d$branch.legend <- paste0("KLC/", unique(d$branch))
 d$branch.legend[d$branch.legend == "KLC/NA"] <- "WCB outside KLC"
 
+################
+# Costum Icons #
+################
+
+img <- list.files("icons/", pattern = "\\.png$")
+img <- sub('\\.png$', '', img)
+img <- as.character(sort(as.numeric(img)))
+img <- paste0("icons/",img, ".png")
+
+#li = list()
+#for(i in 1:length(img)){
+#  li[[paste0("code",i)]] = makeIcon(paste0("icons/", img[i], ".png"), iconWidth = 40, iconHeight = 10)
+#}
+
+li <- icons(iconUrl = img, iconWidth = 40, iconHeight = 10)
+
+#li <- makeIcon("icons/1.png", iconWidth = 40, iconHeight = 10)
+
 ###########
 # Popup   # 
 ###########
@@ -144,20 +162,16 @@ server <- function(input, output) {
       leafletProxy("map", data = d) %>% 
         clearMarkers() %>% 
         clearControls() %>% 
-        addLabelOnlyMarkers(data = d,
-                          ~as.numeric(d$long),
-                          ~as.numeric(d$lat),
-                          label =  ~as.character(d$guthrieCode),
-                          labelOptions = labelOptions(noHide = T,
-                                                      offset=c(-12,0),
-                                                      textOnly = T,
-                                                      textsize = '15px',
-                                                      style = list('color' =  'black'))) %>% 
-        addLegend(position = "bottomleft",
-                  title = "",
-                  pal = if(input$color ==  "branch"){colorFactor(append(rainbow(length(unique(d$branch))), "#808080"), domain = NULL)}else{pal},
-                  values = if(input$color ==  "branch"){~d$branch.legend}else{~x},
-                  opacity = 1)
+        addMarkers(data = d,
+                   ~as.numeric(d$long),
+                   ~as.numeric(d$lat),
+                   icon = li, 
+                   popup = popup)# %>% 
+        #addLegend(position = "bottomleft",
+        #          title = "",
+        #          pal = if(input$color ==  "branch"){colorFactor(append(rainbow(length(unique(d$branch))), "#808080"), domain = NULL)}else{pal},
+        #          values = if(input$color ==  "branch"){~d$branch.legend}else{~x},
+        #          opacity = 1)
     } else {
       leafletProxy("map", data = d) %>% 
         clearMarkers() %>% 
