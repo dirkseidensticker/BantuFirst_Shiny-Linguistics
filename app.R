@@ -147,10 +147,10 @@ server <- function(input, output) {
   
   output$value <- renderText({
     if(input$color == "branch.legend"){
-      print("based on de Schryver et al. 2015, Grollemund et al. 2015, Bostoen & de Schryver 2018")
+      print("based on de Schryver et al. 2015, Bostoen & de Schryver 2018 and Pacchiarotti et al. 2019")
     }
     else if(input$color == "guthrie"){
-      print("based on Guthrie 1971, Maho 2009 and further updates by Sara Pacchiarotti")
+      print("based on Guthrie 1971, Maho 2009 and Pacchiarotti et al. 2019")
     }
   })
   
