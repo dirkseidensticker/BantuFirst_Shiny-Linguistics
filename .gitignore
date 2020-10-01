@@ -59,9 +59,6 @@ rsconnect/
 # Excel Backup File
 *.xlk
 
-# Powerpoint
-*.pptx
-
 # End of https://www.gitignore.io/api/microsoftoffice
 
 # End of https://www.gitignore.io/api/r
