@@ -62,7 +62,7 @@ g.li <- icons(iconUrl = g.img, iconWidth = 60, iconHeight = 21)
 popup <- paste0("<b>", "Variety: ","</b>", d$variety, "<br>",
                 "<b>", "Branch: ","</b>", ifelse(!is.na(d$branch), paste0("KLC/", d$branch), paste0("non KLC West-Costal-Bantu")), "<br>",
                 "<b>", "(Updated) Guthrie 1971/Maho 2009 code: ", "</b>", d$guthrieCode, "<br>",
-                "<b>", "Coordinates: ", "</b>", if(d$lat <= 0){paste0(abs(d$lat), "°S / ")} else {paste0(d$lat, "°N / ")}, d$long, "°E <br>", 
+                "<b>", "Coordinates: ", "</b>", paste0(abs(d$lat), "°S / "), d$long, "°E <br>", 
                 "<b>", "Source: ", "</b>", d$source)
 
 ###########
@@ -75,8 +75,8 @@ server <- function(input, output) {
     leaflet(d, 
             options = leafletOptions(minZoom = 5, 
                                      maxZoom = 11)) %>% 
-      addProviderTiles(providers$Stamen.TonerLite, 
-                       group = "Toner Lite") %>%
+      addProviderTiles(providers$CartoDB.Positron, 
+                       group = "CartoDB") %>%
       addProviderTiles(providers$Esri.NatGeoWorldMap, 
                        group = "ESRI") %>%
       addTiles(group = "OpenStreetMap") %>% 
